@@ -63,7 +63,8 @@ export const DetailsModal: React.FC<DetailModal> = ({
   useEffect(() => {
     if (!id) return;
     refetch();
-  }, [id, refetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   const [isEdit, setIsEdit] = useState(false);
 

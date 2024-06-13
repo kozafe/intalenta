@@ -1,28 +1,11 @@
 import { useEffect, useState } from "react";
 import { useQueryHook } from "../../components/api";
+import { CreateModal } from "./create";
 import { Book, DetailsItem, DetailsModal } from "./details";
 import { LoadingScreen } from "./loading";
-import { Modal } from "../../components/modal";
-import { EditDetailsComponent } from "./edit";
 
-export const ListPage = () => {
-  const { data, loading, setData } = useQueryHook<Book[]>({
-    url: "/books",
-  });
-
-  const [page, setPage] = useState(1);
-
-  const paginate = 5;
-
-  const maxPage = Math.ceil(data.length / paginate);
-
+const useFavorites = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
-
-  const [selectedId, setSelectedId] = useState<boolean | number>(false);
-
-  const [isOpenAdd, setIsOpenAdd] = useState(false);
-
-  const books = data.slice((page - 1) * paginate, page * paginate);
 
   useEffect(() => {
     const favorites: number[] =
@@ -36,6 +19,28 @@ export const ListPage = () => {
 
     setFavorites(result);
   };
+
+  return { favorites, setFavorites: setsFavorite };
+};
+
+export const ListPage = () => {
+  const { data, loading, setData } = useQueryHook<Book[]>({
+    url: "/books",
+  });
+
+  const [page, setPage] = useState(1);
+
+  const paginate = 5;
+
+  const maxPage = Math.ceil(data.length / paginate);
+
+  const { favorites, setFavorites } = useFavorites();
+
+  const [selectedId, setSelectedId] = useState<boolean | number>(false);
+
+  const [isOpenAdd, setIsOpenAdd] = useState(false);
+
+  const books = data.slice((page - 1) * paginate, page * paginate);
 
   const handleClick = (type: string, value?: number | Book) => {
     const isOpenDetails = type === "details";
@@ -70,7 +75,7 @@ export const ListPage = () => {
       setSelectedId(false);
       const result = favorites.filter((id) => id !== selectedId);
 
-      setsFavorite(result);
+      setFavorites(result);
 
       return setData((prev) => prev.filter(({ id }) => id !== selectedId));
     }
@@ -93,18 +98,18 @@ export const ListPage = () => {
 
     const result = decider();
 
-    setsFavorite(result);
+    setFavorites(result);
   };
 
   if (loading) return <LoadingScreen />;
 
   return (
     <div className="m-20">
-      <Modal isOpen={isOpenAdd} toggle={() => setIsOpenAdd(false)}>
-        <EditDetailsComponent
-          onSubmit={(val: Book) => handleClick("add", val)}
-        />
-      </Modal>
+      <CreateModal
+        isOpen={isOpenAdd}
+        toggle={() => setIsOpenAdd(false)}
+        onSubmit={(val: Book) => handleClick("add", val)}
+      />
       <DetailsModal
         toggle={() => setSelectedId(false)}
         id={selectedId}
